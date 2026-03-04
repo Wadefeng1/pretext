@@ -143,9 +143,13 @@ const kinsokuStart = new Set([
   '\u303B', // 〻
 ])
 
-// Line-end prohibition: these characters cannot end a line.
-// To prevent this, they are merged with the following grapheme.
+// Line-end prohibition: these characters cannot end a line (UAX #14 class OP +
+// CJK opening brackets). To prevent this, they are merged with the following
+// grapheme in CJK splitting, and with the following word in general merging.
 const kinsokuEnd = new Set([
+  // ASCII/Latin
+  '(', '[', '{',
+  // CJK fullwidth
   '\uFF08', // （
   '\u3014', // 〔
   '\u3008', // 〈
@@ -402,6 +406,17 @@ export function prepare(text: string, font: string, lineHeight?: number): Prepar
     }
   }
 
+  // Forward-merge opening brackets with the following segment (UAX #14: opening
+  // punctuation can't end a line). E.g. "(" + "approximately" → "(approximately".
+  for (let i = merged.length - 2; i >= 0; i--) {
+    const seg = merged[i]!
+    if (!seg.isSpace && !seg.isWordLike && seg.text.length === 1 && kinsokuEnd.has(seg.text)) {
+      merged[i + 1]!.text = seg.text + merged[i + 1]!.text
+      merged[i + 1]!.start = seg.start
+      merged.splice(i, 1)
+    }
+  }
+
   for (let mi = 0; mi < merged.length; mi++) {
     const seg = merged[mi]!
     if (seg.isWordLike && isCJK(seg.text)) {
@@ -499,7 +514,7 @@ export function layout(prepared: PreparedText, maxWidth: number, lineHeight?: nu
   for (let p = 0; p < paraData.length; p++) {
     const data = paraData[p]!
 
-    const { widths, isWordLike: isWord, isSpace: isSp, segLevels, breakableWidths } = data
+    const { widths, isSpace: isSp, segLevels, breakableWidths } = data
     let lineW = 0
     let hasContent = false
     let lineStart = 0
@@ -534,17 +549,13 @@ export function layout(prepared: PreparedText, maxWidth: number, lineHeight?: nu
       const newW = lineW + w
 
       if (newW > maxWidth) {
-        let breakIdx: number
-        if (isWord[i]) {
-          breakIdx = i
-        } else if (isSp[i]) {
+        if (isSp[i]) {
           // Trailing whitespace hangs past the line edge (CSS behavior)
           continue
-        } else {
-          // Non-word, non-space (emoji, punctuation, parens, etc.)
-          // CSS breaks at the preceding space, putting this on the next line.
-          breakIdx = i
         }
+
+        // Non-space segment overflows. Break before it (words, emoji, punct).
+        const breakIdx = i
 
         if (segLevels !== null) {
           reorderLine(segLevels, lineStart, breakIdx)
@@ -557,7 +568,7 @@ export function layout(prepared: PreparedText, maxWidth: number, lineHeight?: nu
           lineW += widths[j]!
         }
 
-        if (breakIdx === i && w > maxWidth && breakableWidths[i] !== null) {
+        if (w > maxWidth && breakableWidths[i] !== null) {
           const gWidths = breakableWidths[i]!
           lineW = 0
           lineCount--

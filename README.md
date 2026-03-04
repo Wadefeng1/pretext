@@ -55,7 +55,7 @@ Chrome's remaining 3 mismatches are Georgia font measurement rounding at borderl
 
 ## Known limitations
 
-- **Bidi boundary breaks**: browsers may break at script boundaries (LTR→RTL transitions) differently from our algorithm.
+- **CSS config**: targets the default (`white-space: normal`, `word-break: normal`, `overflow-wrap: break-word`, `line-break: auto`). Other configurations (`break-all`, `keep-all`, `strict`, `loose`, `anywhere`) are untested.
 - **`system-ui` font**: canvas and DOM resolve this CSS keyword to different font variants at certain sizes on macOS. Use a named font (Inter, Helvetica, Arial, etc.) for guaranteed accuracy.
 - **Server-side**: requires a canvas implementation (browser, or `@napi-rs/canvas` with registered fonts). Headless tests use HarfBuzz (WASM) instead.
 
