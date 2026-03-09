@@ -4,7 +4,7 @@ Internal notes for contributors and agents. Use `README.md` as the public source
 
 ### Commands
 
-- `bun start` — serve pages at http://localhost:3000
+- `bun start` — serve pages at http://localhost:3000 (kills stale `:3000` listeners first)
 - `bun run check` — typecheck + lint
 - `bun test` — lightweight invariant tests against the shipped implementation
 - `bun run accuracy-check` / `:safari` / `:firefox` — browser accuracy sweeps
