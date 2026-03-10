@@ -90,6 +90,24 @@
     "notes": "Myanmar prose stress corpus from Wikisource, trimmed to the story body only and excluding the teaching-guide scaffolding."
   },
   {
+    "id": "my-bad-deeds-return-to-you-teacher",
+    "language": "my",
+    "direction": "ltr",
+    "title": "မကောင်းမှုဒဏ် ကိုယ့်ထံပြန် (ဆရာ)",
+    "source_url": "https://my.wikisource.org/wiki/%E1%80%99%E1%80%80%E1%80%B1%E1%80%AC%E1%80%84%E1%80%BA%E1%80%B8%E1%80%99%E1%80%BE%E1%80%AF%E1%80%92%E1%80%8F%E1%80%BA_%E1%80%80%E1%80%AD%E1%80%AF%E1%80%9A%E1%80%B7%E1%80%BA%E1%80%91%E1%80%B6%E1%80%95%E1%80%BC%E1%80%94%E1%80%BA_(%E1%80%86%E1%80%9B%E1%80%AC)",
+    "output": "corpora/my-bad-deeds-return-to-you-teacher.txt",
+    "font_family": "\"Myanmar MN\", \"Myanmar Sangam MN\", \"Noto Sans Myanmar\", serif",
+    "font_size_px": 20,
+    "line_height_px": 32,
+    "default_width": 600,
+    "min_width": 300,
+    "max_width": 900,
+    "characters": 1666,
+    "lines": 9,
+    "acquired_via": "raw-trim",
+    "notes": "Second Myanmar prose stress corpus from Wikisource, trimmed to the story body only and excluding the teacher-guide scaffolding, references, and questions."
+  },
+  {
     "id": "km-prachum-reuang-preng-khmer-volume-7-stories-1-10",
     "language": "km",
     "direction": "ltr",

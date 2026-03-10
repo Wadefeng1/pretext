@@ -37,6 +37,12 @@ Current bundle:
   - URL: <https://my.wikisource.org/wiki/%E1%80%85%E1%80%89%E1%80%BA%E1%80%B8%E1%80%9C%E1%80%B2%E1%80%9E%E1%80%B1%E1%80%AC_%E1%80%97%E1%80%BB%E1%80%AD%E1%80%AF%E1%80%84%E1%80%BA%E1%80%B8_(%E1%80%86%E1%80%9B%E1%80%AC)>
   - Acquisition: Wikisource `parse` API, trimmed to the story body only and excluding the teaching-guide scaffolding
 
+- `my-bad-deeds-return-to-you-teacher.txt`
+  - Language: Myanmar
+  - Source: `မကောင်းမှုဒဏ် ကိုယ့်ထံပြန် (ဆရာ)`
+  - URL: <https://my.wikisource.org/wiki/%E1%80%99%E1%80%80%E1%80%B1%E1%80%AC%E1%80%84%E1%80%BA%E1%80%B8%E1%80%99%E1%80%BE%E1%80%AF%E1%80%92%E1%80%8F%E1%80%BA_%E1%80%80%E1%80%AD%E1%80%AF%E1%80%9A%E1%80%B7%E1%80%BA%E1%80%91%E1%80%B6%E1%80%95%E1%80%BC%E1%80%94%E1%80%BA_(%E1%80%86%E1%80%9B%E1%80%AC)>
+  - Acquisition: Wikisource raw page, trimmed to the story body only and excluding the teacher-guide scaffolding, references, and questions
+
 - `km-prachum-reuang-preng-khmer-volume-7-stories-1-10.txt`
   - Language: Khmer
   - Source: `ប្រជុំរឿងព្រេងខ្មែរ/ភាគទី៧`

@@ -877,6 +877,27 @@ Interpretation:
 - it is also not yielding to simple “more break opportunities” heuristics
 - if we revisit Myanmar, the next step should be either a better diagnostic model for Myanmar line extraction or a more principled line-break unit model, not another narrow glue patch by instinct
 
+We also added a second clean Myanmar prose corpus from the same teacher-guide source family:
+- `မကောင်းမှုဒဏ် ကိုယ့်ထံပြန် (ဆရာ)`
+- extracted from the raw Wikisource page by trimming to the story body and dropping the surrounding lesson-plan scaffolding, references, and questions
+
+What it showed:
+- Chrome and Safari were both exact at the anchor widths (`300`, `600`, `800`)
+- a sampled Chrome sweep (`--samples=9`) was `8/9 exact`
+- a fuller Chrome `step=10` sweep was `57/61 exact`, with four remaining one-line misses
+
+The representative remaining Chrome miss at `580px` is the same broad class as the first Myanmar corpus:
+- `... ကျွေးပစ်မယ်”|ဟု ...`
+- Chrome breaks before the closing-quote + `ဟု` follower cluster
+
+But Safari did not agree in the same way:
+- the full Safari check at `580px` was exact overall
+- its first local line mismatch was earlier in the paragraph and of a different shape
+
+Interpretation:
+- the second Myanmar corpus confirms that closing-quote + follower behavior is a real recurring class in Myanmar prose
+- but it also reinforces that the class is not stable enough across engines to justify another direct glue heuristic right now
+
 ## Sampled cross-font corpus matrix
 
 The first font-axis pass was lighter-weight on purpose: keep the same corpora and widths, but swap only
