@@ -1,4 +1,4 @@
-type Family = 'dune' | 'petal' | 'saddle' | 'ribbon'
+type Family = 'dune' | 'meander' | 'shoal' | 'gust'
 
 type Candidate = {
   id: number
@@ -15,17 +15,17 @@ type CardLayout = {
 
 const candidates: Candidate[] = [
   { id: 11, family: 'dune', title: 'Slip' },
-  { id: 19, family: 'petal', title: 'Bloom' },
-  { id: 23, family: 'saddle', title: 'Notch' },
-  { id: 31, family: 'ribbon', title: 'Drift' },
+  { id: 19, family: 'meander', title: 'Bloom' },
+  { id: 23, family: 'shoal', title: 'Notch' },
+  { id: 31, family: 'gust', title: 'Drift' },
   { id: 37, family: 'dune', title: 'Shelf' },
-  { id: 43, family: 'petal', title: 'Knot' },
-  { id: 47, family: 'saddle', title: 'Fold' },
-  { id: 53, family: 'ribbon', title: 'Wake' },
+  { id: 43, family: 'meander', title: 'Knot' },
+  { id: 47, family: 'shoal', title: 'Fold' },
+  { id: 53, family: 'gust', title: 'Wake' },
   { id: 59, family: 'dune', title: 'Basin' },
-  { id: 61, family: 'petal', title: 'Veil' },
-  { id: 67, family: 'saddle', title: 'Hollow' },
-  { id: 71, family: 'ribbon', title: 'Sweep' },
+  { id: 61, family: 'meander', title: 'Veil' },
+  { id: 67, family: 'shoal', title: 'Hollow' },
+  { id: 71, family: 'gust', title: 'Sweep' },
 ]
 
 const domCache = {
@@ -63,6 +63,10 @@ function hash(n: number): number {
 
 function hash2(a: number, b: number): number {
   return hash((a + Math.imul(b, 0x9e3779b9)) | 0)
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value))
 }
 
 function ensureCard(index: number) {
@@ -129,131 +133,86 @@ function computeCardLayouts(stageWidth: number): { layouts: CardLayout[], stageH
   }
 }
 
-function familyNumber(family: Family): number {
+function familyLabel(family: Family): string {
   switch (family) {
-    case 'dune': return 0
-    case 'petal': return 1
-    case 'saddle': return 2
-    case 'ribbon': return 3
+    case 'dune': return 'dune'
+    case 'meander': return 'meander'
+    case 'shoal': return 'shoal'
+    case 'gust': return 'gust'
   }
 }
 
-function familyPalette(family: Family): { fillA: string, fillB: string, stroke: string, contour: string } {
-  switch (family) {
-    case 'dune':
-      return {
-        fillA: '#f0cb91',
-        fillB: '#7d4d28',
-        stroke: 'rgba(58, 36, 18, 0.22)',
-        contour: 'rgba(255, 240, 214, 0.48)',
-      }
-    case 'petal':
-      return {
-        fillA: '#efd1b0',
-        fillB: '#8e5a4a',
-        stroke: 'rgba(69, 41, 31, 0.2)',
-        contour: 'rgba(255, 241, 224, 0.54)',
-      }
-    case 'saddle':
-      return {
-        fillA: '#ecc18b',
-        fillB: '#5e3b27',
-        stroke: 'rgba(43, 26, 15, 0.22)',
-        contour: 'rgba(255, 242, 221, 0.42)',
-      }
-    case 'ribbon':
-      return {
-        fillA: '#f2d59f',
-        fillB: '#6d4528',
-        stroke: 'rgba(51, 31, 17, 0.2)',
-        contour: 'rgba(255, 246, 230, 0.46)',
-      }
-  }
+function smoothstep(t: number): number {
+  return t * t * (3 - 2 * t)
 }
 
-function blobPoint(
+function flowPoint(
   candidate: Candidate,
-  angle: number,
-  width: number,
-  height: number,
+  t: number,
+  sizeX: number,
+  sizeY: number,
   viewportWidth: number,
   viewportHeight: number,
-): { x: number, y: number } {
-  const family = familyNumber(candidate.family)
+): { x: number, y: number, halfWidth: number } {
   const seed = candidate.id
-
-  const centerX = width * (0.5 + (hash2(seed, 41) - 0.5) * 0.06 + Math.sin(viewportWidth * 0.0016 + family) * 0.015)
-  const centerY = height * (0.52 + (hash2(seed, 59) - 0.5) * 0.05 + Math.cos(viewportHeight * 0.0018 + seed * 0.03) * 0.015)
+  const phase = hash2(seed, 31) * Math.PI * 2
   const aspect = viewportWidth / Math.max(1, viewportHeight)
-  const warp = Math.sin(viewportWidth * 0.0023 + angle * (2.2 + family * 0.3) + seed * 0.09)
-  const warp2 = Math.cos(viewportHeight * 0.0027 - angle * (3.4 + family * 0.2) + seed * 0.13)
+  const viewportWarp = Math.sin(viewportWidth * 0.0017 + seed * 0.03) * 0.5 + Math.cos(viewportHeight * 0.0011 - seed * 0.04) * 0.5
+  const startX = sizeX * (0.18 + hash2(seed, 71) * 0.08)
+  const endX = sizeX * (0.78 + hash2(seed, 73) * 0.06)
+  const startY = sizeY * (0.26 + hash2(seed, 79) * 0.12)
+  const endY = sizeY * (0.76 - hash2(seed, 83) * 0.12)
+  const u = smoothstep(t)
+  const swell = smoothstep(clamp((t - 0.1) / 0.9, 0, 1))
 
-  let base = 1
-  let stretchX = 1
-  let stretchY = 1
+  let bendX = 0
+  let bendY = 0
+  let thin = 0
+  let thick = 0
+  let bulge = 0
 
   switch (candidate.family) {
     case 'dune':
-      base += 0.16 * Math.sin(angle * 2 + seed * 0.11)
-      base += 0.08 * Math.cos(angle * 5 - viewportWidth * 0.0019)
-      stretchX = 1.28 + 0.04 * Math.sin(viewportHeight * 0.0011 + seed)
-      stretchY = 0.92 + 0.05 * Math.cos(viewportWidth * 0.0013 + seed * 0.2)
+      bendX = Math.sin(t * Math.PI * 1.2 + phase) * sizeX * (0.13 + 0.02 * viewportWarp)
+      bendY = Math.sin(t * Math.PI * 0.9 + phase * 0.5) * sizeY * 0.05
+      thin = sizeY * 0.06
+      thick = sizeY * (0.18 + 0.02 * Math.sin(aspect + seed * 0.02))
+      bulge = Math.exp(-Math.pow((t - 0.7) / 0.22, 2)) * sizeY * 0.035
       break
-    case 'petal':
-      base += 0.19 * Math.sin(angle * 4 + seed * 0.07)
-      base += 0.06 * Math.cos(angle * 7 - viewportHeight * 0.0016)
-      stretchX = 1.02 + 0.08 * Math.sin(aspect + seed * 0.03)
-      stretchY = 1.08 + 0.08 * Math.cos(aspect * 1.7 + seed * 0.05)
+    case 'meander':
+      bendX =
+        Math.sin(t * Math.PI * 1.5 + phase) * sizeX * 0.11 +
+        Math.sin(t * Math.PI * 2.5 + phase * 0.6) * sizeX * 0.04
+      bendY = Math.cos(t * Math.PI * 1.2 + phase * 0.4) * sizeY * 0.08
+      thin = sizeY * 0.05
+      thick = sizeY * 0.16
+      bulge = Math.exp(-Math.pow((t - 0.62) / 0.28, 2)) * sizeY * 0.045
       break
-    case 'saddle':
-      base += 0.15 * Math.sin(angle * 3 + seed * 0.08)
-      base += 0.09 * Math.cos(angle * 6 + viewportWidth * 0.0014)
-      base -= 0.13 * Math.cos(angle * 2 - viewportHeight * 0.0013)
-      stretchX = 1.12 + 0.06 * Math.sin(seed * 0.02 + viewportWidth * 0.001)
-      stretchY = 0.98 + 0.08 * Math.cos(seed * 0.03 + viewportHeight * 0.001)
+    case 'shoal':
+      bendX = Math.sin(t * Math.PI * 1.1 + phase) * sizeX * 0.09
+      bendY = Math.cos(t * Math.PI * 1.9 + phase * 0.5) * sizeY * 0.06
+      thin = sizeY * 0.04
+      thick = sizeY * 0.15
+      bulge =
+        Math.exp(-Math.pow((t - 0.48) / 0.18, 2)) * sizeY * 0.05 +
+        Math.exp(-Math.pow((t - 0.76) / 0.14, 2)) * sizeY * 0.02
       break
-    case 'ribbon':
-      base += 0.11 * Math.sin(angle * 2 + seed * 0.09)
-      base += 0.13 * Math.cos(angle * 5 - seed * 0.04 + viewportWidth * 0.0018)
-      base += 0.04 * Math.sin(angle * 9 + viewportHeight * 0.0014)
-      stretchX = 1.34 + 0.06 * Math.cos(seed * 0.05 + aspect)
-      stretchY = 0.8 + 0.05 * Math.sin(seed * 0.02 + aspect * 1.3)
+    case 'gust':
+      bendX =
+        Math.sin(t * Math.PI * 1.3 + phase) * sizeX * 0.12 +
+        Math.cos(t * Math.PI * 2.1 + phase * 0.8) * sizeX * 0.03
+      bendY = Math.sin(t * Math.PI * 0.8 + phase * 0.3) * sizeY * 0.07
+      thin = sizeY * 0.035
+      thick = sizeY * 0.14
+      bulge = Math.exp(-Math.pow((t - 0.82) / 0.2, 2)) * sizeY * 0.055
       break
   }
-
-  const radiusX = width * 0.28 * stretchX * (base + warp * 0.1)
-  const radiusY = height * 0.24 * stretchY * (base + warp2 * 0.08)
-  const driftX = width * 0.03 * Math.sin(angle * 3 + viewportWidth * 0.003 + seed)
-  const driftY = height * 0.03 * Math.cos(angle * 4 - viewportHeight * 0.003 + seed * 0.5)
 
   return {
-    x: centerX + Math.cos(angle) * radiusX + driftX,
-    y: centerY + Math.sin(angle) * radiusY + driftY,
+    x: startX + (endX - startX) * u + bendX,
+    y: startY + (endY - startY) * u + bendY,
+    halfWidth: thin + (thick - thin) * swell + bulge,
   }
-}
-
-function polygonPoints(
-  candidate: Candidate,
-  width: number,
-  height: number,
-  viewportWidth: number,
-  viewportHeight: number,
-  scale: number,
-): string {
-  const points: string[] = []
-  const centerX = width * 0.5
-  const centerY = height * 0.52
-  const steps = 44
-
-  for (let i = 0; i < steps; i++) {
-    const angle = (i / steps) * Math.PI * 2
-    const point = blobPoint(candidate, angle, width, height, viewportWidth, viewportHeight)
-    const x = centerX + (point.x - centerX) * scale
-    const y = centerY + (point.y - centerY) * scale
-    points.push(`${x.toFixed(2)},${y.toFixed(2)}`)
-  }
-
-  return points.join(' ')
 }
 
 function buildBlobSvg(
@@ -263,34 +222,30 @@ function buildBlobSvg(
   viewportWidth: number,
   viewportHeight: number,
 ): string {
-  const palette = familyPalette(candidate.family)
-  const shapeId = `blob-${candidate.family}-${candidate.id}`
-  const outer = polygonPoints(candidate, width, height, viewportWidth, viewportHeight, 1)
-  const contourA = polygonPoints(candidate, width, height, viewportWidth, viewportHeight, 0.84)
-  const contourB = polygonPoints(candidate, width, height, viewportWidth, viewportHeight, 0.68)
-  const contourC = polygonPoints(candidate, width, height, viewportWidth, viewportHeight, 0.54)
-  const shadeShiftX = 20 + hash2(candidate.id, 103) * 50
-  const shadeShiftY = 18 + hash2(candidate.id, 109) * 44
+  const left: string[] = []
+  const right: string[] = []
+  const steps = 36
+
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const point = flowPoint(candidate, t, width, height, viewportWidth, viewportHeight)
+    const prev = flowPoint(candidate, Math.max(0, t - 0.015), width, height, viewportWidth, viewportHeight)
+    const next = flowPoint(candidate, Math.min(1, t + 0.015), width, height, viewportWidth, viewportHeight)
+    const dx = next.x - prev.x
+    const dy = next.y - prev.y
+    const length = Math.hypot(dx, dy) || 1
+    const nx = -dy / length
+    const ny = dx / length
+
+    left.push(`${(point.x + nx * point.halfWidth).toFixed(2)},${(point.y + ny * point.halfWidth).toFixed(2)}`)
+    right.push(`${(point.x - nx * point.halfWidth).toFixed(2)},${(point.y - ny * point.halfWidth).toFixed(2)}`)
+  }
+
+  const polygon = left.concat(right.reverse()).join(' ')
 
   return `
     <svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-      <defs>
-        <linearGradient id="${shapeId}-fill" x1="${shadeShiftX}%" y1="0%" x2="100%" y2="${shadeShiftY}%">
-          <stop offset="0%" stop-color="${palette.fillA}" />
-          <stop offset="58%" stop-color="${palette.fillB}" />
-          <stop offset="100%" stop-color="#21160f" />
-        </linearGradient>
-        <radialGradient id="${shapeId}-shine" cx="36%" cy="28%">
-          <stop offset="0%" stop-color="rgba(255,255,255,0.72)" />
-          <stop offset="46%" stop-color="rgba(255,255,255,0.08)" />
-          <stop offset="100%" stop-color="rgba(255,255,255,0)" />
-        </radialGradient>
-      </defs>
-      <polygon points="${outer}" fill="url(#${shapeId}-fill)" stroke="${palette.stroke}" stroke-width="1.2" />
-      <polygon points="${outer}" fill="url(#${shapeId}-shine)" opacity="0.55" />
-      <polygon points="${contourA}" fill="none" stroke="${palette.contour}" stroke-width="2.3" />
-      <polygon points="${contourB}" fill="none" stroke="${palette.contour}" stroke-width="1.7" opacity="0.86" />
-      <polygon points="${contourC}" fill="none" stroke="${palette.contour}" stroke-width="1.25" opacity="0.72" />
+      <polygon points="${polygon}" fill="#050505" />
     </svg>
   `
 }
@@ -315,7 +270,7 @@ function render(): void {
     card.card.style.width = `${layout.width}px`
     card.card.style.height = `${layout.height}px`
 
-    card.family.textContent = candidate.family
+    card.family.textContent = familyLabel(candidate.family)
     card.title.textContent = candidate.title
     card.metaLeft.textContent = `seed ${candidate.id}`
     card.metaRight.textContent = `${artWidth}×${artHeight}`
