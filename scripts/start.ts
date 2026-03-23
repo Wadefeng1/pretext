@@ -1,6 +1,7 @@
 import { execFileSync, spawn } from 'node:child_process'
 
 const PORT = 3000
+const HOST = process.env['HOST'] ?? '127.0.0.1'
 
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -67,7 +68,7 @@ async function freePort(port: number): Promise<void> {
 async function main(): Promise<void> {
   await freePort(PORT)
 
-  const child = spawn('/bin/zsh', ['-lc', `bun --watch --no-clear-screen --port=${PORT} pages/*.html pages/demos/*.html pages/demos/*/index.html`], {
+  const child = spawn('/bin/zsh', ['-lc', `bun pages/*.html pages/demos/*.html pages/demos/*/index.html --watch --no-clear-screen --host=${HOST}:${PORT}`], {
     cwd: process.cwd(),
     stdio: 'inherit',
   })
