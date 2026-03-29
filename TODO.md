@@ -8,15 +8,16 @@ Current priorities:
 
 2. Next engine work
 
+- Use the split `analyze()` / `measure()` benchmark rows to steer any remaining `prepare()` work instead of reopening generic profiling.
 - Broaden canaries only when the source text is clean.
 - Expand the sampled font matrix only where a canary still looks genuinely imperfect.
 - Keep the hot `layout()` path simple and allocation-light while the rich path absorbs more userland layout needs.
 
 3. Demo work
 
-- Push the dynamic-layout demo toward richer editorial layouts.
-- Try an “Old Man and the Sea” resize / reflow demo.
-- Revisit a synced multi-view demo only if it earns its complexity again.
+- Keep the editorial demos as the dogfood path for the rich line APIs.
+- Prefer `layoutNextLine()` / `walkLineRanges()` when a demo is really about streaming or obstacle-aware layout.
+- Add a new demo only if it exposes something the current editorial demos do not already cover.
 
 Not worth doing right now:
 
